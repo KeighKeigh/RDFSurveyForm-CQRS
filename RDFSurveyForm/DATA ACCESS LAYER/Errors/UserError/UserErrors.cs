@@ -28,8 +28,11 @@ namespace RDFSurveyForm.Handlers.Errors.UserError
         public static Error NameExist() => new Error("User.NameExist",
             "Name already exists");
 
-        public static Error USerNameExist() => new Error("User.USerNameExist",
+        public static Error UserNameExist() => new Error("User.USerNameExist",
             "Userame already exists");
+
+        public static Error RoleNameExist() => new Error("User.RoleNameExist",
+            "Role already exists");
 
     }
 }

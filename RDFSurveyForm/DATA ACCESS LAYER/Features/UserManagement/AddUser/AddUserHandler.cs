@@ -40,7 +40,7 @@ namespace RDFSurveyForm.Handlers.Errors.Features.UserManagement
 
             }
 
-            private async Task<Result?> Validator(AddUserCommand command, CancellationToken cancellationToken)
+            private async Task<Result> Validator(AddUserCommand command, CancellationToken cancellationToken)
             {
                 if (string.IsNullOrEmpty(command.FullName))
                     return Result.Failure(UserErrors.EmptyFullName());
@@ -60,7 +60,7 @@ namespace RDFSurveyForm.Handlers.Errors.Features.UserManagement
                     .AnyAsync(u => u.UserName == command.UserName, cancellationToken);
 
                 if (usernameExist)                
-                    return Result.Failure(UserErrors.EmptyFullName());
+                    return Result.Failure(UserErrors.UserNameExist());
 
 
                 return null;

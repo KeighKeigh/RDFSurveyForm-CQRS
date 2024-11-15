@@ -8,9 +8,12 @@ using RDFSurveyForm.Common.EXTENSIONS;
 using RDFSurveyForm.Common.HELPERS;
 using RDFSurveyForm.Data;
 using RDFSurveyForm.Dto.ModelDto.UserDto;
+using RDFSurveyForm.Model;
 using RDFSurveyForm.Services;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.GetUsers.GetUser;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.ResetPassword.ResetPasswordHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.UserActive.UserActiveHandler;
 using static RDFSurveyForm.Handlers.Errors.Features.UserManagement.AddUserHandler;
 using static RDFSurveyForm.Handlers.UpdatePasswordHandler;
 using static RDFSurveyForm.Handlers.UpdateUserHandler;
@@ -71,36 +74,6 @@ namespace RDFSurveyForm.Controllers.ModelController
                 return Conflict(ex.Message);
             }
 
-            //user.Id = Id;
-            //var fname = await _unitOfWork.Customer.UserAlreadyExist(user.FullName);
-            //var uname = await _unitOfWork.Customer.UserNameAlreadyExist(user.UserName);
-
-            //var existingUser = await _context.Customer.FirstOrDefaultAsync(x => x.Id == user.Id);
-
-            //if (string.IsNullOrEmpty(user.FullName))
-            //{
-            //    return BadRequest("Enter Full name");
-            //}
-            //if (string.IsNullOrEmpty(user.UserName))
-            //{
-            //    return BadRequest("Enter Username");
-            //}
-            //if (fname == false && user.FullName != existingUser.FullName)
-            //{
-            //    return BadRequest("Name already Exist!");
-
-            //}
-            //if (uname == false && user.UserName != existingUser.UserName)
-            //{
-            //    return BadRequest("Username already Exist!");
-            //}
-
-            //var users = await _unitOfWork.Customer.UpdateUser(user);
-            //if (users == false)
-            //{
-            //    return BadRequest("User Not Found!");
-            //}
-            //return Ok("User Updated Successfuly!");
         }
 
 
@@ -189,26 +162,53 @@ namespace RDFSurveyForm.Controllers.ModelController
             return Ok(usersummaryResult);
         }
 
-        [HttpPatch("SetIsActive/{Id}")]
-        public async Task<IActionResult> SetIsActive([FromRoute] int Id)
+        [HttpPatch("SetIsActive/{id:int}")]
+        public async Task<IActionResult> SetIsActive([FromRoute] int id)
         {
-            var setisactive = await _unitOfWork.Customer.SetIsActive(Id);
-            if (setisactive == false)
+            try
             {
-                return BadRequest("Id does not exist!");
+                var command = new UserActiveCommand
+                {
+                    Id = id
+                };
+
+                var result = await _mediator.Send(command);
+
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-            return Ok("Updated");
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
+
         }
 
-        [HttpPut("Resetpassword/{Id:int}")]
-        public async Task<IActionResult> ResetPassword([FromRoute]int Id)
+        [HttpPut("Resetpassword/{id:int}")]
+        public async Task<IActionResult> ResetPassword([FromRoute] int id)
         {
-            var resetPassord = await _unitOfWork.Customer.ResetPassword(Id);
-            if(resetPassord == false)
+
+            try
             {
-                return BadRequest("Id does not exist!");
+                var command = new ResetPasswordCommand
+                {
+                    Id = id
+                };
+
+                var result = await _mediator.Send(command);
+
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-            return Ok("Password Reset");
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
+
         }
 
     }

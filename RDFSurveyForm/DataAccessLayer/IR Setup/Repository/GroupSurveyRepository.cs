@@ -184,24 +184,7 @@ namespace RDFSurveyForm.DataAccessLayer.IR_Setup.Repository
                     });
 
 
-            //if (Ids != null)
-            //{
-
-
-                
-            //    //var groupid = await _context.GroupSurvey.Where(x => x.GroupsId  == users.);
-            //    int count =  userss.Count();
-            //    foreach (var items in userss)
-            //    { 
-
-
-            //        items.FinalScore = items.FinalScore ;
-            //        users =  users.Where(x => x.GroupName == items.GroupName);
-                    
-            //    }
-
-
-            //}
+            
 
 
             if (status != null)

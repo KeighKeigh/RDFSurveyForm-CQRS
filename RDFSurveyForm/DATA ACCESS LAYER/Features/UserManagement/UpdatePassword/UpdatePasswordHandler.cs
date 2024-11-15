@@ -40,8 +40,14 @@ namespace RDFSurveyForm.Handlers
             }
 
 
-            private async Task<Result?> Validator(User updatepassword, UpdatePasswordCommand command, CancellationToken cancellationToken)
+            private async Task<Result> Validator(User updatepassword, UpdatePasswordCommand command, CancellationToken cancellationToken)
             {
+                bool userIds = await _context.Users
+                    .AnyAsync(u => u.Id == command.Id, cancellationToken);
+
+                if (!userIds)
+                    return Result.Failure(UserErrors.IdDoesNotExist());
+
                 if (updatepassword == null)
                 {
                     return Result.Failure(UserErrors.IdDoesNotExist());

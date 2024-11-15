@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using RDFSurveyForm.Common.EXTENSIONS;
 using RDFSurveyForm.Common.HELPERS;
 using RDFSurveyForm.Data;
 using RDFSurveyForm.Dto.ModelDto.RoleDto;
 using RDFSurveyForm.Services;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.RoleManagement.AddRoles.AddRoleHandler;
 
 namespace RDFSurveyForm.Controllers.ModelController
 {
@@ -13,24 +16,30 @@ namespace RDFSurveyForm.Controllers.ModelController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly StoreContext _context;
+        private readonly IMediator _mediator;
 
-        public RoleController(IUnitOfWork unitOfWork)
+        public RoleController(IUnitOfWork unitOfWork, IMediator mediator)
         {
             _unitOfWork = unitOfWork;
-            //sdasujdasd
+            _mediator = mediator;
+            
         }
         [HttpPost]
         [Route("AddNewRole")]
-        public async Task<IActionResult> AddNewRole(AddRoleDto role)
+        public async Task<IActionResult> AddNewRole(AddRoleCommand command)
         {
-            var roleExist = await _unitOfWork.CRole.RoleExist(role.RoleName);
-            if(roleExist == false)
+            try
             {
-                return BadRequest("Role already exist!");
-            }
-            await _unitOfWork.CRole.AddNewRole(role);
+                var result = await _mediator.Send(command);
+                if (result.IsFailure)
+                    return BadRequest(result);
 
-            return Ok("Success");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
         [HttpPut("UpdateRole/{Id:int}")]
