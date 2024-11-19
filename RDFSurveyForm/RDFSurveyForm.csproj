@@ -40,8 +40,6 @@
     <Folder Include="DATA ACCESS LAYER\Features\BranchManagement\" />
     <Folder Include="DATA ACCESS LAYER\Features\CategoryManagement\" />
     <Folder Include="DATA ACCESS LAYER\Features\GroupManagement\" />
-    <Folder Include="DATA ACCESS LAYER\Features\RoleManagement\InActiveRoles\" />
-    <Folder Include="DATA ACCESS LAYER\Features\RoleManagement\UpdateRoles\" />
   </ItemGroup>
 
 </Project>

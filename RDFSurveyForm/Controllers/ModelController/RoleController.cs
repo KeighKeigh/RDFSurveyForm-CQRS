@@ -4,9 +4,13 @@ using RDFSurveyForm.Common.EXTENSIONS;
 using RDFSurveyForm.Common.HELPERS;
 using RDFSurveyForm.Data;
 using RDFSurveyForm.Dto.ModelDto.RoleDto;
+using RDFSurveyForm.Model;
 using RDFSurveyForm.Services;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.RoleManagement.AddRoles.AddRoleHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.RoleManagement.InActiveRoles.RoleActiveHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.RoleManagement.UpdateRoles.UpdateRoleHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.UserActive.UserActiveHandler;
 
 namespace RDFSurveyForm.Controllers.ModelController
 {
@@ -42,51 +46,50 @@ namespace RDFSurveyForm.Controllers.ModelController
             }
         }
 
-        [HttpPut("UpdateRole/{Id:int}")]
+        [HttpPut("UpdateRole")]
 
-        public async Task<IActionResult> UpdateRole([FromBody] UpdateRoleDto role, [FromRoute] int Id)
+        public async Task<IActionResult> UpdateRole([FromBody] UpdateRoleCommand role)
         {
-            role.Id = Id;
-            var verify = await _unitOfWork.CRole.UpdatedPermission(role);
-            var roles = await _unitOfWork.CRole.UpdateRole(role);
-            if (roles == false)
+            try
             {
-                return BadRequest("User does not exist");
-            }
+                var result = await _mediator.Send(role);
 
+                if (result.IsFailure)
+                    return BadRequest(result);
 
-            if (roles == true && verify == false)
-            {
-                return Ok("Tagged a Permission");
+                return Ok(result);
             }
-            if (roles == true && verify == true)
+            catch (Exception ex)
             {
-                return Ok("Untagged a Permission");
+                return Conflict(ex.Message);
             }
-            return Ok("ok");
         }
 
 
 
        
 
-        [HttpPatch("SetIsActive/{Id:int}")]
-        public async Task<IActionResult> SetIsActive([FromRoute] int Id)
+        [HttpPatch("SetIsActive/{id:int}")]
+        public async Task<IActionResult> SetIsActive([FromRoute] int id)
         {
-            var isactiveValidation = await _unitOfWork.CRole.IsActiveValidation(Id);
-            if (isactiveValidation == true)
+            try
             {
-                return BadRequest("Cannot Deactivate Role");
+                var command = new RoleActiveCommand
+                {
+                    Id = id
+                };
+
+                var result = await _mediator.Send(command);
+
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-            var setisactive = await _unitOfWork.CRole.SetIsActive(Id);
-            if (setisactive == null)
+            catch (Exception ex)
             {
-                return BadRequest("Id does not exist");
-
+                return Conflict(ex.Message);
             }
-
-
-            return Ok("Updated");
 
         }
 

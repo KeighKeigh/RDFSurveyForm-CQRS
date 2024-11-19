@@ -31,8 +31,16 @@ namespace RDFSurveyForm.Handlers.Errors.UserError
         public static Error UserNameExist() => new Error("User.USerNameExist",
             "Userame already exists");
 
-        public static Error RoleNameExist() => new Error("User.RoleNameExist",
+
+        //Role Errors
+        public static Error RoleNameExist() => new Error("Role.RoleNameExist",
             "Role already exists");
+
+        public static Error PermissionTagged() => new Error("Role.PermissionTagged",
+            "Tagged a Permission");
+
+        public static Error PermissionUntagged() => new Error("Role.PermissionUntagged",
+            "Untagged a Permission");
 
     }
 }

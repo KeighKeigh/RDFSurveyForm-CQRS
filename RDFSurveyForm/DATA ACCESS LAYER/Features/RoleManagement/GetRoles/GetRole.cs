@@ -56,7 +56,7 @@ namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.RoleManagement.GetRoles
                     Permission = x.Permission,
                     EditedBy = x.EditedBy,
 
-                });
+                    });
 
                 return await PagedList<GetRoleResult>.CreateAsync(result, request.PageNumber, request.PageSize);
             }
