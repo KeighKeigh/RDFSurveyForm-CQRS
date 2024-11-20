@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RDFSurveyForm.Common;
 using RDFSurveyForm.Common.EXTENSIONS;
 using RDFSurveyForm.Common.HELPERS;
 using RDFSurveyForm.Data;
@@ -7,6 +9,12 @@ using RDFSurveyForm.Dto.ModelDto.DepartmentDto;
 using RDFSurveyForm.Model;
 using RDFSurveyForm.Services;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.DepartmentManagement.AddDepartment.AddDepartmentHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.DepartmentManagement.GetDepartment.GetDepartment;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.DepartmentManagement.UpdateDepartment.UpdateDepartmentHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.UserActive.UserActiveHandler;
 
 namespace RDFSurveyForm.Controllers.ModelController
 {
@@ -16,87 +24,116 @@ namespace RDFSurveyForm.Controllers.ModelController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly StoreContext _context;
-
-
-        public DepartmentController(IUnitOfWork unitOfWork, StoreContext context)
+        private readonly IMediator _mediator;
+        public DepartmentController(IUnitOfWork unitOfWork, StoreContext context, IMediator mediator)
         {
             _unitOfWork = unitOfWork;
             _context = context;
+            _mediator = mediator;
 
         }
         [HttpPost]
         [Route("AddNewDepartment")]
-        public async Task<IActionResult> AddDepartment(AddDepartmentDto department)
+        public async Task<IActionResult> AddDepartment(AddDepartmentCommand command)
         {
-            var existingDept = await _unitOfWork.Department.ExistingDepartment(department.DepartmentName);
-
-            if(existingDept == false)
+            try
             {
-                return BadRequest("Department Name already exist!");
-            }
-            await _unitOfWork.Department.AddDepartment(department);
-            await _unitOfWork.CompleteAsync();
+                var result = await _mediator.Send(command);
+                if (result.IsFailure)
+                    return BadRequest(result);
 
-            return Ok("Success");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
-        [HttpPut("UpdateDepartment/{Id:int}")]
+        [HttpPut("UpdateDepartment/{id:int}")]
 
-        public async Task<IActionResult> UpdateDepartment([FromBody] UpdateDepartmentDto department, [FromRoute] int Id)
+        public async Task<IActionResult> UpdateDepartment([FromBody] UpdateDepartmentCommand command, [FromRoute] int id)
         {
-            department.Id = Id;
-
-            var dept = await _unitOfWork.Department.UpdateDepartment(department);
-            if (dept == false)
+            command.Id = id;
+            try
             {
-                return BadRequest("Department does not exist");
+                var result = await _mediator.Send(command);
+
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-            return Ok("Success");
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
 
         
 
-        [HttpPatch("SetIsActive/{Id:int}")]
-        public async Task<IActionResult> SetIsActive([FromRoute] int Id)
+        [HttpPatch("SetIsActive/{id:int}")]
+        public async Task<IActionResult> SetIsActive([FromRoute] int id)
         {
-            var isactiveValidation = await _unitOfWork.Department.IsActiveValidation(Id);
-            if (isactiveValidation == true)
+            try
             {
-                return BadRequest("Cannot Deactivate Department");
+                var command = new UserActiveCommand
+                {
+                    Id = id
+                };
+
+                var result = await _mediator.Send(command);
+
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-            var setisactive = await _unitOfWork.Department.SetIsActive(Id);
-            if (setisactive == false)
+            catch (Exception ex)
             {
-                return BadRequest("Id does not exist");
-
+                return Conflict(ex.Message);
             }
-
-
-            return Ok("Updated");
 
         }
 
         [HttpGet]
         [Route("DepartmentListPagination")]
-        public async Task<ActionResult<IEnumerable<GetDepartmentDto>>> CustomerListPagnation([FromQuery] UserParams userParams, bool? status, string search)
+        public async Task<IActionResult> GetDepartment([FromQuery] GetDepartmentQuery query)
         {
-            var deptsummary = await _unitOfWork.Department.CustomerListPagnation(userParams, status, search);
-
-            Response.AddPaginationHeader(deptsummary.CurrentPage, deptsummary.PageSize, deptsummary.TotalCount, deptsummary.TotalPages, deptsummary.HasNextPage, deptsummary.HasPreviousPage);
-
-            var deptsummaryResult = new
+            try
             {
-                deptsummary,
-                deptsummary.CurrentPage,
-                deptsummary.PageSize,
-                deptsummary.TotalCount,
-                deptsummary.TotalPages,
-                deptsummary.HasNextPage,
-                deptsummary.HasPreviousPage
-            };
+                var users = await _mediator.Send(query);
 
-            return Ok(deptsummaryResult);
+                Response.AddPaginationHeader(
+
+                   users.CurrentPage,
+                   users.PageSize,
+                   users.TotalCount,
+                   users.TotalPages,
+                   users.HasNextPage,
+                   users.HasPreviousPage
+
+                    );
+
+                var results = new
+                {
+                    users,
+                    users.PageSize,
+                    users.TotalCount,
+                    users.TotalPages,
+                    users.HasNextPage,
+                    users.HasPreviousPage
+                };
+
+                var successResult = Result.Success(results);
+                return Ok(successResult);
+
+            }
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
         [HttpPut("SyncDepartment")]

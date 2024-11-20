@@ -1,13 +1,16 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using RDFSurveyForm.Common;
 using RDFSurveyForm.Common.EXTENSIONS;
 using RDFSurveyForm.Common.HELPERS;
 using RDFSurveyForm.Data;
 using RDFSurveyForm.Dto.ModelDto.RoleDto;
 using RDFSurveyForm.Model;
 using RDFSurveyForm.Services;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.RoleManagement.AddRoles.AddRoleHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.RoleManagement.GetRoles.GetRole;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.RoleManagement.InActiveRoles.RoleActiveHandler;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.RoleManagement.UpdateRoles.UpdateRoleHandler;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.UserActive.UserActiveHandler;
@@ -69,14 +72,14 @@ namespace RDFSurveyForm.Controllers.ModelController
 
        
 
-        [HttpPatch("SetIsActive/{id:int}")]
-        public async Task<IActionResult> SetIsActive([FromRoute] int id)
+        [HttpPatch("SetIsActive/{Id:int}")]
+        public async Task<IActionResult> SetIsActive([FromRoute] int Id)
         {
             try
             {
                 var command = new RoleActiveCommand
                 {
-                    Id = id
+                    Id = Id
                 };
 
                 var result = await _mediator.Send(command);
@@ -95,24 +98,41 @@ namespace RDFSurveyForm.Controllers.ModelController
 
         [HttpGet]
         [Route("RoleListPagination")]
-        public async Task<ActionResult<IEnumerable<GetRoleDto>>> CustomerListPagnation([FromQuery] UserParams userParams, bool? status, string search)
+        public async Task<IActionResult> CustomerListPagnation([FromQuery] GetRoleQuery query )
         {
-            var rolesummary = await _unitOfWork.CRole.CustomerListPagnation(userParams, status, search);
-
-            Response.AddPaginationHeader(rolesummary.CurrentPage, rolesummary.PageSize, rolesummary.TotalCount, rolesummary.TotalPages, rolesummary.HasNextPage, rolesummary.HasPreviousPage);
-
-            var rolesummaryResult = new
+            try
             {
-                rolesummary,
-                rolesummary.CurrentPage,
-                rolesummary.PageSize,
-                rolesummary.TotalCount,
-                rolesummary.TotalPages,
-                rolesummary.HasNextPage,
-                rolesummary.HasPreviousPage
-            };
+                var users = await _mediator.Send(query);
 
-            return Ok(rolesummaryResult);
+                Response.AddPaginationHeader(
+
+                   users.CurrentPage,
+                   users.PageSize,
+                   users.TotalCount,
+                   users.TotalPages,
+                   users.HasNextPage,
+                   users.HasPreviousPage
+
+                    );
+
+                var results = new
+                {
+                    users,
+                    users.PageSize,
+                    users.TotalCount,
+                    users.TotalPages,
+                    users.HasNextPage,
+                    users.HasPreviousPage
+                };
+
+                var successResult = Result.Success(results);
+                return Ok(successResult);
+
+            }
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
     }
 }

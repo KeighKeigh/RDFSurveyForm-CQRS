@@ -36,8 +36,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DATA ACCESS LAYER\Features\DepartmentManagement\" />
-    <Folder Include="DATA ACCESS LAYER\Features\BranchManagement\" />
     <Folder Include="DATA ACCESS LAYER\Features\CategoryManagement\" />
     <Folder Include="DATA ACCESS LAYER\Features\GroupManagement\" />
   </ItemGroup>

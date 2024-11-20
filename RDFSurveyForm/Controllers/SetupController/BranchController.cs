@@ -1,12 +1,21 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RDFSurveyForm.Common;
 using RDFSurveyForm.Common.EXTENSIONS;
 using RDFSurveyForm.Common.HELPERS;
 using RDFSurveyForm.Data;
 using RDFSurveyForm.Dto.ModelDto.UserDto;
 using RDFSurveyForm.Dto.SetupDto.BranchDto;
+using RDFSurveyForm.Model;
 using RDFSurveyForm.Services;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.BranchManagement.AddBranch.AddBranchHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.BranchManagement.GetBranch.GetBranch;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.BranchManagement.UpdateBranch.UpdateBranchHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.UserActive.UserActiveHandler;
 
 namespace RDFSurveyForm.Controllers.SetupController
 {
@@ -16,86 +25,109 @@ namespace RDFSurveyForm.Controllers.SetupController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly StoreContext _context;
-
-        public BranchController(IUnitOfWork unitOfWork, StoreContext context)
+        private readonly IMediator _mediator;
+        public BranchController(IUnitOfWork unitOfWork, StoreContext context, IMediator mediator)
         {
             _context = context;
             _unitOfWork = unitOfWork;
+            _mediator = mediator;
         }
 
         [HttpPost("AddBranch")]
-        public async Task<IActionResult> AddBranch(AddBranchDto branch)
+        public async Task<IActionResult> AddBranch(AddBranchCommand command)
         {
-            var branchExist = await _unitOfWork.Branches.BranchAlreadyExist(branch.BranchName);
-            var codeExist = await _unitOfWork.Branches.BranchCodeExist(branch.BranchCode);
-            if(branchExist == false)
+            try
             {
-                return BadRequest("Branch Name Already Exist!");
+                var result = await _mediator.Send(command);
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-            if(codeExist == false)
+            catch (Exception ex)
             {
-                return BadRequest("Branch Code Already Exist!");
+                return Conflict(ex.Message);
             }
-            await _unitOfWork.Branches.AddBranch(branch);
-            return Ok("Branch Added!");
         }
 
         [HttpPut("UpdateBranch/{Id:int}")]
-        public async Task<IActionResult> UpdateBranch([FromBody]UpdateBranchDto branch, [FromRoute] int Id)
+        public async Task<IActionResult> UpdateBranch([FromBody]UpdateBranchCommand command, [FromRoute] int Id)
         {
-            branch.Id = Id;
-            var branchExist = await _unitOfWork.Branches.BranchAlreadyExist(branch.BranchName);
-            var updateBranch = await _context.Branches.FirstOrDefaultAsync(x => x.Id == branch.Id);
-
-            
-            if(branchExist == false && branch.BranchName != updateBranch.BranchName)
+            command.Id = Id;
+            try
             {
-                return Ok("Branch Name Already Exist!");
-            }
+                var result = await _mediator.Send(command);
 
-            var branchId = await _unitOfWork.Branches.UpdateBranch(branch);
-            if(branchId == false)
-            {
-                return BadRequest("Branch Id Not Found!");
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-            return Ok("Updated Successfuly!"); 
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
         [HttpGet("BranchListPagination")]
-        public async Task<ActionResult<IEnumerable<GetBranchDto>>> CustomerListPagnation([FromQuery] UserParams userParams, bool? status, string search)
+        public async Task<IActionResult> CustomerListPagnation([FromQuery] GetBranchQuery query)
         {
-            var branchsummary = await _unitOfWork.Branches.BranchListPagnation(userParams, status, search);
-
-            Response.AddPaginationHeader(branchsummary.CurrentPage, branchsummary.PageSize, branchsummary.TotalCount, branchsummary.TotalPages, branchsummary.HasNextPage, branchsummary.HasPreviousPage);
-
-            var branchsummaryResult = new
+            try
             {
-                branchsummary,
-                branchsummary.CurrentPage,
-                branchsummary.PageSize,
-                branchsummary.TotalCount,
-                branchsummary.TotalPages,
-                branchsummary.HasNextPage,
-                branchsummary.HasPreviousPage
-            };
+                var users = await _mediator.Send(query);
 
-            return Ok(branchsummaryResult);
+                Response.AddPaginationHeader(
+
+                   users.CurrentPage,
+                   users.PageSize,
+                   users.TotalCount,
+                   users.TotalPages,
+                   users.HasNextPage,
+                   users.HasPreviousPage
+
+                    );
+
+                var results = new
+                {
+                    users,
+                    users.PageSize,
+                    users.TotalCount,
+                    users.TotalPages,
+                    users.HasNextPage,
+                    users.HasPreviousPage
+                };
+
+                var successResult = Result.Success(results);
+                return Ok(successResult);
+
+            }
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
         [HttpPatch("SetIsactive/{Id:int}")]
         public async Task<IActionResult> SetIsactive([FromRoute]int Id)
         {
-            var isactiveValidation = await _unitOfWork.Branches.IsActiveValidation(Id);
-            if (isactiveValidation == true)
+            try
             {
-                return BadRequest("Cannot Deavtivate Branch");
+                var command = new UserActiveCommand
+                {
+                    Id = Id
+                };
+
+                var result = await _mediator.Send(command);
+
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-            var setisactive = await _unitOfWork.Branches.SetIsactive(Id);
-            if(setisactive == false)
+            catch (Exception ex)
             {
-                return BadRequest("Branch does not exist!");
+                return Conflict(ex.Message);
             }
-            return Ok("Updated!");
         }
 
         

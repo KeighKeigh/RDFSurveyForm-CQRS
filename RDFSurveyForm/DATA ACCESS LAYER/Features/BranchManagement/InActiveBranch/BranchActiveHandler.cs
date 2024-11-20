@@ -3,18 +3,18 @@ using Microsoft.EntityFrameworkCore;
 using RDFSurveyForm.Common;
 using RDFSurveyForm.Data;
 using RDFSurveyForm.Handlers.Errors.UserError;
-using System.ComponentModel.Design;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
-namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.UserActive
+namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.BranchManagement.InActiveBranch
 {
-    public class UserActiveHandler
+    public class BranchActiveHandler
     {
-        public class UserActiveCommand : IRequest<Result>
+        public class BranchActiveCommand : IRequest<Result>
         {
             public int Id { get; set; }
         }
 
-        public class Handler : IRequestHandler<UserActiveCommand, Result>
+        public class Handler : IRequestHandler<BranchActiveCommand, Result>
         {
             private readonly StoreContext _context;
 
@@ -23,38 +23,39 @@ namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.UserActive
                 _context = context;
             }
 
-            public async Task<Result> Handle(UserActiveCommand command, CancellationToken cancellationToken)
+            async public Task<Result> Handle(BranchActiveCommand command, CancellationToken cancellationToken)
             {
                 var validator = await Validator(command, cancellationToken);
                 if (validator is not null)
                     return validator;
 
-                await UserActivity(command, cancellationToken);
+                await BranchActivity(command, cancellationToken);
 
                 await _context.SaveChangesAsync(cancellationToken);
 
                 return Result.Success();
             }
 
-            private async Task<Result> Validator(UserActiveCommand command, CancellationToken cancellationToken)
+            private async Task<Result> Validator(BranchActiveCommand command, CancellationToken cancellationToken)
             {
-                bool userId = await _context.Users
+                bool branchId = await _context.Branches
                     .AnyAsync(u => u.Id == command.Id);
 
-                if (userId)
+                if (branchId)
                     return Result.Failure(UserErrors.IdDoesNotExist());
 
                 return null;
             }
 
-            private async Task UserActivity(UserActiveCommand command, CancellationToken cancellationToken)
+            private async Task BranchActivity(BranchActiveCommand command, CancellationToken cancellationToken)
             {
-                var setIsactive = await _context.Users.FirstOrDefaultAsync(x => x.Id == command.Id);
+                var setIsactive = await _context.Branches
+                    .FirstOrDefaultAsync(x => x.Id == command.Id);
+
                 if (setIsactive != null)
                 {
-                    setIsactive.IsActive = !setIsactive.IsActive;             
+                    setIsactive.IsActive = !setIsactive.IsActive;
                 }
-
             }
         }
     }

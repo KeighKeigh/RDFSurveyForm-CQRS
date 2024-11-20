@@ -17,12 +17,11 @@ namespace RDFSurveyForm.Handlers
         public class Handler : IRequestHandler<UpdateUserCommand, Result>
         {
             private readonly StoreContext _context;
-            private readonly IMediator _mediator;
-            public Handler(StoreContext context, IMediator mediator)
+
+            public Handler(StoreContext context)
             {
 
                 _context = context;
-                _mediator = mediator;
 
             }
 
@@ -37,7 +36,7 @@ namespace RDFSurveyForm.Handlers
                 return Result.Success();
             }
 
-            public async Task<Result?> Validator(UpdateUserCommand command, CancellationToken cancellationToken)
+            public async Task<Result> Validator(UpdateUserCommand command, CancellationToken cancellationToken)
             {
                 bool userIds = await _context.Users
                     .AnyAsync(u => u.Id == command.Id, cancellationToken);

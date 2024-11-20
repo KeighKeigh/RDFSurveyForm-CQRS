@@ -139,28 +139,7 @@ namespace RDFSurveyForm.Controllers.ModelController
         }
 
 
-        
-
-        [HttpGet("CustomerListPagination")]
-        public async Task<ActionResult<IEnumerable<GetUserDto>>> CustomerListPagnation([FromQuery] UserParams userParams, bool? status, string search)
-        {
-            var usersummary = await _unitOfWork.Customer.CustomerListPagnation(userParams, status, search);
-
-            Response.AddPaginationHeader(usersummary.CurrentPage, usersummary.PageSize, usersummary.TotalCount, usersummary.TotalPages, usersummary.HasNextPage, usersummary.HasPreviousPage);
-
-            var usersummaryResult = new
-            {
-                usersummary,
-                usersummary.CurrentPage,
-                usersummary.PageSize,
-                usersummary.TotalCount,
-                usersummary.TotalPages,
-                usersummary.HasNextPage,
-                usersummary.HasPreviousPage
-            };
-
-            return Ok(usersummaryResult);
-        }
+       
 
         [HttpPatch("SetIsActive/{id:int}")]
         public async Task<IActionResult> SetIsActive([FromRoute] int id)
