@@ -39,9 +39,7 @@ namespace RDFSurveyForm.Controllers.ModelController
 
         [HttpPost("AddUser")]
         public async Task<IActionResult> AddNewUser(AddUserCommand command)
-        {
-
-            
+        {            
             try
             {
                var result = await _mediator.Send(command);
@@ -141,14 +139,14 @@ namespace RDFSurveyForm.Controllers.ModelController
 
        
 
-        [HttpPatch("SetIsActive/{id:int}")]
-        public async Task<IActionResult> SetIsActive([FromRoute] int id)
+        [HttpPatch("SetIsActive/{Id:int}")]
+        public async Task<IActionResult> SetIsActive([FromRoute] int Id)
         {
             try
             {
                 var command = new UserActiveCommand
                 {
-                    Id = id
+                    Id = Id
                 };
 
                 var result = await _mediator.Send(command);

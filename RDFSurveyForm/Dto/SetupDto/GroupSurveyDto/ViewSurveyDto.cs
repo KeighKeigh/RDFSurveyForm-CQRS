@@ -4,8 +4,8 @@
     {
         public int ? SurveyGeneratorId { get; set; }
 
-        public List<Category> Categories { get; set; }
-        public class Category
+        public List<Categoria> Categories { get; set; }
+        public class Categoria
         {
             public int ? Id { get; set; }
             public string CategoryName { get; set; }

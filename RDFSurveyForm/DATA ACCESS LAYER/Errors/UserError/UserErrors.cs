@@ -47,11 +47,16 @@ namespace RDFSurveyForm.Handlers.Errors.UserError
             "Department Name already exist.");
 
         //Branch Errors
-        public static Error BranchExist() => new Error("Branch.DepartmentExist",
+        public static Error BranchExist() => new Error("Branch.BranchExist",
             "Branch Name already exist.");
 
-        public static Error BranchCodeExist() => new Error("Branch.DepartmentExist",
+        public static Error BranchCodeExist() => new Error("Branch.BranchCodeExist",
             "Branch Code already exist.");
 
+        //Category Errors
+        public static Error PercentageExceed() => new Error("Category.PercentageExceed",
+            "% exceeded 100%");
+        public static Error CategoryExist() => new Error("Category.BranchCodeExist",
+            "Category Already Exist!");
     }
 }

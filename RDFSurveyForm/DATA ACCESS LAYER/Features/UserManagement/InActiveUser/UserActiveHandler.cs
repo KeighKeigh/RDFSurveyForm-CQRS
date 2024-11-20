@@ -41,7 +41,7 @@ namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.UserActive
                 bool userId = await _context.Users
                     .AnyAsync(u => u.Id == command.Id);
 
-                if (userId)
+                if (!userId)
                     return Result.Failure(UserErrors.IdDoesNotExist());
 
                 return null;
