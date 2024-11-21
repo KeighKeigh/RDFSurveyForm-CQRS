@@ -1,11 +1,22 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RDFSurveyForm.Common;
 using RDFSurveyForm.Common.EXTENSIONS;
 using RDFSurveyForm.Common.HELPERS;
 using RDFSurveyForm.Data;
 using RDFSurveyForm.Dto.SetupDto.GroupDto;
+using RDFSurveyForm.Model;
 using RDFSurveyForm.Services;
 using System.Runtime.CompilerServices;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.CategoryManagement.DeleteCategory.DeleteCategoryHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.GroupManagement.AddGroup.AddGroupHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.GroupManagement.DeleteGroup.DeleteGroupHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.GroupManagement.GetGroup.GetGroup;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.GroupManagement.InActiveGroup.GroupActiveHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.GroupManagement.UpdateGroup.UpdateGroupHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.UserActive.UserActiveHandler;
 
 namespace RDFSurveyForm.Controllers.SetupController
 {
@@ -15,77 +26,134 @@ namespace RDFSurveyForm.Controllers.SetupController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly StoreContext _context;
+        private readonly IMediator _mediator;
 
-        public GroupController(IUnitOfWork unitOfWork, StoreContext context)
+        public GroupController(IUnitOfWork unitOfWork, StoreContext context, IMediator mediator)
         {
             _unitOfWork = unitOfWork;
             _context = context;
+            _mediator = mediator;
         }
 
         [HttpPost("AddGroup")]
-        public async Task<IActionResult> AddGroup(AddGroupDto group)
+        public async Task<IActionResult> AddGroup(AddGroupCommand command)
         {
-            var groupExist = await _unitOfWork.Groups.GroupAlreadyExist(group.GroupName);
-            if(groupExist == false)
+            try
             {
-                return BadRequest("Group Name Already Exist!");
+                var result = await _mediator.Send(command);
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-            await _unitOfWork.Groups.AddGroup(group);
-            return Ok("Group Added!");
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
         [HttpPut("UpdateGroup/{Id:int}")]
-        public async Task<IActionResult> UpdateGroup([FromBody]UpdateGroupDto group,[FromRoute] int Id)
+        public async Task<IActionResult> UpdateGroup([FromBody]UpdateGroupCommand command,[FromRoute] int Id)
         {
-            group.Id = Id;
-            var groupExist = await _unitOfWork.Groups.GroupAlreadyExist(group.GroupName);
-            var updateGroup = await _context.Groups.FirstOrDefaultAsync(x => x.Id == group.Id);
-            if(groupExist == false && group.GroupName != updateGroup.GroupName) 
+            command.Id = Id;
+            try
             {
-                return Ok("Group Name Already Exist!");
+                var result = await _mediator.Send(command);
 
-       
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-
-            var groupId = await _unitOfWork.Groups.UpdateGroup(group);
-            if(groupId == false)
+            catch (Exception ex)
             {
-                return BadRequest("Group Id Not Found!");
+                return Conflict(ex.Message);
             }
-            return Ok("Update Successfuly!");
         }
 
         [HttpGet("GroupListPagination")]
-        public async Task<ActionResult<IEnumerable<GetGroupDto>>> GroupListPagnation([FromQuery] UserParams userParams, bool ? status, string search)
+        public async Task<IActionResult> GroupListPagnation([FromQuery] GetGroupQuery query)
         {
-            var gcsummary = await _unitOfWork.Groups.GroupListPagnation(userParams, status, search);
-            Response.AddPaginationHeader(gcsummary.CurrentPage, gcsummary.PageSize, gcsummary.TotalCount, gcsummary.TotalPages, gcsummary.HasNextPage, gcsummary.HasPreviousPage);
-
-            var gcsummaryResult = new
+            try
             {
-                gcsummary,
-                gcsummary.CurrentPage,
-                gcsummary.PageSize,
-                gcsummary.TotalCount,
-                gcsummary.TotalPages,
-                gcsummary.HasNextPage,
-                gcsummary.HasPreviousPage
-            };
-            return Ok(gcsummaryResult);
+                var users = await _mediator.Send(query);
+
+                Response.AddPaginationHeader(
+
+                   users.CurrentPage,
+                   users.PageSize,
+                   users.TotalCount,
+                   users.TotalPages,
+                   users.HasNextPage,
+                   users.HasPreviousPage
+
+                    );
+
+                var results = new
+                {
+                    users,
+                    users.PageSize,
+                    users.TotalCount,
+                    users.TotalPages,
+                    users.HasNextPage,
+                    users.HasPreviousPage
+                };
+
+                var successResult = Result.Success(results);
+                return Ok(successResult);
+
+            }
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
         [HttpPatch("Setisactive/{Id:int}")]
         public async Task<IActionResult> SetIsactive([FromRoute] int Id)
-        {           
-            var setisactive = await _unitOfWork.Groups.SetIsactive(Id);
-            if(setisactive == false)
+        {
+            try
             {
-                return BadRequest("Group does not exist!");
+                var command = new GroupActiveCommand
+                {
+                    Id = Id
+                };
+
+                var result = await _mediator.Send(command);
+
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-            return Ok("Updated");
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
-        
+        [HttpDelete("DeleteGroup/{Id:int}")]
+        public async Task<IActionResult> DeleteCategory([FromRoute] int Id)
+        {
+            try
+            {
+                var command = new DeleteGroupCommand
+                {
+                    Id = Id
+                };
+
+                var result = await _mediator.Send(command);
+
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
+        }
     }
 
 }

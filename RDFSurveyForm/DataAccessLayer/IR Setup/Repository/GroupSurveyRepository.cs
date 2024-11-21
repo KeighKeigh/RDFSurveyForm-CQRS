@@ -27,7 +27,7 @@ namespace RDFSurveyForm.DataAccessLayer.IR_Setup.Repository
 
         public async Task<bool> AddSurvey(AddGroupSurveyDto survey)
         {          
-                var newGenerator = new SurveyGenerator { };
+            var newGenerator = new SurveyGenerator { };
             await _context.SurveyGenerator.AddAsync(newGenerator);
             await _context.SaveChangesAsync();
 
@@ -211,7 +211,7 @@ namespace RDFSurveyForm.DataAccessLayer.IR_Setup.Repository
                 .GroupBy(x => x.SurveyGeneratorId).Select(x => new ViewSurveyDto
                 {
                     SurveyGeneratorId = x.Key,
-                    Categories = x.Select(x => new ViewSurveyDto.Category
+                    Categories = x.Select(x => new ViewSurveyDto.Categoria
                     {
                         Id = x.Id,
                         CategoryName = x.CategoryName,

@@ -56,11 +56,11 @@ namespace RDFSurveyForm.Controllers.ModelController
 
         [HttpPut("UpdateUser")]
 
-        public async Task<IActionResult> UpdateUser([FromBody] UpdateUserCommand user)
+        public async Task<IActionResult> UpdateUser([FromBody] UpdateUserCommand command)
         {
             try
             {
-                var result = await _mediator.Send(user);
+                var result = await _mediator.Send(command);
 
                 if (result.IsFailure)
                     return BadRequest(result);

@@ -4,7 +4,7 @@ namespace RDFSurveyForm.Handlers.Errors.UserError
 {
     public class UserErrors
     {
-        public static Error IdDoesNotExist() => new Error("User.IdDoesNotExist",
+        public static Error IdDoesNotExist() => new Error("IdDoesNotExist",
             "User ID does not exist.");
 
         public static Error WrongPassword() => new Error("User.WrongPassword",
@@ -58,5 +58,17 @@ namespace RDFSurveyForm.Handlers.Errors.UserError
             "% exceeded 100%");
         public static Error CategoryExist() => new Error("Category.BranchCodeExist",
             "Category Already Exist!");
+
+        //Group Errors
+        public static Error GroupExist() => new Error("Group.GroupExist",
+            "Group Name Already Exist!");
+
+        //GroupSurvey Errors
+        public static Error ScoreExceed() => new Error("GroupSurvey.ScoreExceed",
+            "Follow the Limit!");
+        public static Error NoGroupId() => new Error("GroupSurvey.NoGroupId",
+            "Group Id does not exist!");
+        public static Error GroupSurveyError() => new Error("GroupSurvey.GroupSurveyError",
+            "Error!");
     }
 }
