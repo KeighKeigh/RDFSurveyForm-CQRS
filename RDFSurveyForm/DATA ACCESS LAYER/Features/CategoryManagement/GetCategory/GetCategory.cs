@@ -56,7 +56,7 @@ namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.CategoryManagement.GetCategor
                     {
                         Id = r.Id,
                         CategoryName = r.CategoryName,
-                        CategoryPercentage = r.CategoryPercentage,
+                        CategoryPercentage = r.CategoryPercentage * 100,
                         IsActive = r.IsActive,
                         CreatedAt = r.CreatedAt,
                         CreatedBy = r.CreatedBy,

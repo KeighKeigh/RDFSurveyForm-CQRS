@@ -13,6 +13,7 @@ using System.Runtime.CompilerServices;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.DepartmentManagement.AddDepartment.AddDepartmentHandler;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.DepartmentManagement.GetDepartment.GetDepartment;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.DepartmentManagement.InActiveDepartment.DepartmentActiveHandler;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.DepartmentManagement.UpdateDepartment.UpdateDepartmentHandler;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.UserActive.UserActiveHandler;
 
@@ -78,7 +79,7 @@ namespace RDFSurveyForm.Controllers.ModelController
         {
             try
             {
-                var command = new UserActiveCommand
+                var command = new DepartmentActiveCommand
                 {
                     Id = id
                 };

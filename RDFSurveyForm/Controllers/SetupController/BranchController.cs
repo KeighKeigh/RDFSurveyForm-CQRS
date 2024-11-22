@@ -14,6 +14,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.BranchManagement.AddBranch.AddBranchHandler;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.BranchManagement.GetBranch.GetBranch;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.BranchManagement.InActiveBranch.BranchActiveHandler;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.BranchManagement.UpdateBranch.UpdateBranchHandler;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.UserActive.UserActiveHandler;
 
@@ -112,7 +113,7 @@ namespace RDFSurveyForm.Controllers.SetupController
         {
             try
             {
-                var command = new UserActiveCommand
+                var command = new BranchActiveCommand
                 {
                     Id = Id
                 };

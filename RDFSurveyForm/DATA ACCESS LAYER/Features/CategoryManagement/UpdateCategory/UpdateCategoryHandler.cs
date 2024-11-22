@@ -45,7 +45,7 @@ namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.CategoryManagement.UpdateCate
             {
                 bool categoryId = await _context.Category
                     .AnyAsync(c => c.Id == command.Id, cancellationToken);
-                if (categoryId)
+                if (!categoryId)
                     return Result.Failure(UserErrors.IdDoesNotExist());
 
                 var users = await _context.Category.Where(x => x.IsActive && x.Id != command.Id).ToListAsync();
@@ -71,7 +71,7 @@ namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.CategoryManagement.UpdateCate
                 if (updatecategory != null)
                 {
                     updatecategory.CategoryName = command.CategoryName;
-                    updatecategory.CategoryPercentage = command.CategoryPercentage;
+                    updatecategory.CategoryPercentage = command.CategoryPercentage / 100;
                     updatecategory.UpdatedAt = command.UpdatedAt;
                     updatecategory.UpdatedBy = command.UpdatedBy;
                 }

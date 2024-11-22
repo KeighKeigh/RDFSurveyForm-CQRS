@@ -40,7 +40,7 @@ namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.DepartmentManagement.InActive
                 bool departId = await _context.Department
                     .AnyAsync(u => u.Id == command.Id);
 
-                if (departId)
+                if (!departId)
                     return Result.Failure(UserErrors.IdDoesNotExist());
 
                 return null;

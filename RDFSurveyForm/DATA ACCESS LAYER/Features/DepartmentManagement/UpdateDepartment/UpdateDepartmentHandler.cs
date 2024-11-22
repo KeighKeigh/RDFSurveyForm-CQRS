@@ -47,6 +47,12 @@ namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.DepartmentManagement.UpdateDe
                 if (deptname)
                     return Result.Failure(UserErrors.DepartmentExist());
 
+                bool deptId = await _context.Department
+                    .AnyAsync(d => d.Id == command.Id, cancellationToken);
+                if (!deptId)
+                    return Result.Failure(UserErrors.IdDoesNotExist());
+
+
                 return null;
             }
 

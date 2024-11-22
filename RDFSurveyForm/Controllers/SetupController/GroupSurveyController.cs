@@ -11,7 +11,11 @@ using RDFSurveyForm.Dto.SetupDto.GroupSurveyDto;
 using RDFSurveyForm.Model;
 using RDFSurveyForm.Model.Setup;
 using RDFSurveyForm.Services;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.GroupManagement.InActiveGroup.GroupActiveHandler;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.GroupSurveyManagement.AddGroupSurvey.AddGroupSurveyHandler;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.GroupSurveyManagement.GetGroupSurveys.GetGroupSurvey;
+using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.GroupSurveyManagement.InActiveGroupSurvey.GroupSurveyActiveHandler;
 using static RDFSurveyForm.DATA_ACCESS_LAYER.Features.UserManagement.GetUsers.GetUser;
 
 namespace RDFSurveyForm.Controllers.SetupController
@@ -34,28 +38,20 @@ namespace RDFSurveyForm.Controllers.SetupController
 
         [HttpPost("AddGroupSurvey")]
 
-        public async Task<IActionResult> AddGroupSurvey(AddGroupSurveyDto survey)
+        public async Task<IActionResult> AddGroupSurvey(AddGroupSurveyCommand command)
         {
-            var scoreExceed = await _unitofWork.GroupSurvey.ScoreLimit(survey);
-            if (scoreExceed == false)
+            try
             {
-                return BadRequest("Follow the Limit!");
+                var result = await _mediator.Send(command);
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-            var groupexist = await _unitofWork.GroupSurvey.GroupIdDoesnotExist(survey.GroupsId);
-            if (groupexist == false)
+            catch (Exception ex)
             {
-                    return BadRequest("Group Id does not exist!");
+                return Conflict(ex.Message);
             }
-
-            var addgroupSurvey = await _unitofWork.GroupSurvey.AddSurvey(survey);
-            if (addgroupSurvey == false)
-            {
-                    return BadRequest("Error!");
-            }
-
-            await _unitofWork.CompleteAsync();
-
-            return Ok("Survey Added");
         }
 
         [HttpGet("GetGroupSurvey")]
@@ -127,12 +123,24 @@ namespace RDFSurveyForm.Controllers.SetupController
         [HttpPatch("SetIsActive/{Id:int}")]
         public async Task<IActionResult> SetIsActive([FromRoute] int Id)
         {
-            var setisactive = await _unitofWork.GroupSurvey.SetIsActive(Id);
-            if (setisactive == false)
+            try
             {
-                return BadRequest("Id does not exist!");
+                var command = new GroupSurveyActiveCommand
+                {
+                    Id = Id
+                };
+
+                var result = await _mediator.Send(command);
+
+                if (result.IsFailure)
+                    return BadRequest(result);
+
+                return Ok(result);
             }
-            return Ok("Updated");
+            catch (Exception ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
 

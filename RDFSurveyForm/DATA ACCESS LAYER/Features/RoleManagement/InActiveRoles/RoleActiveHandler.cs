@@ -40,7 +40,7 @@ namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.RoleManagement.InActiveRoles
                 bool roleId = await _context.Roles
                     .AnyAsync(u => u.Id == command.Id);
 
-                if (roleId)
+                if (!roleId)
                     return Result.Failure(UserErrors.IdDoesNotExist());
 
                 return null;

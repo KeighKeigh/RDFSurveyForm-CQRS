@@ -41,7 +41,7 @@ namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.BranchManagement.InActiveBran
                 bool branchId = await _context.Branches
                     .AnyAsync(u => u.Id == command.Id);
 
-                if (branchId)
+                if (!branchId)
                     return Result.Failure(UserErrors.IdDoesNotExist());
 
                 return null;

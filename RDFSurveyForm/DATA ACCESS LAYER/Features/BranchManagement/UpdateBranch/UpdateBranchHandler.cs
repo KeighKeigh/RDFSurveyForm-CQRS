@@ -42,7 +42,7 @@ namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.BranchManagement.UpdateBranch
             {
                 bool invalidId = await _context.Branches
                     .AnyAsync(b => b.Id == command.Id, cancellationToken);
-                if (invalidId)
+                if (!invalidId)
                     return Result.Failure(UserErrors.IdDoesNotExist());
 
                 bool branchExist = await _context.Branches

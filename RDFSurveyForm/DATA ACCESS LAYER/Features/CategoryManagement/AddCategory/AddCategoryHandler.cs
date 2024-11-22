@@ -71,7 +71,7 @@ namespace RDFSurveyForm.DATA_ACCESS_LAYER.Features.CategoryManagement.AddCategor
                     CategoryPercentage = command.CategoryPercentage * .01M,
                     CreatedAt = DateTime.Now,
                     CreatedBy = command.CreatedBy,
-                    Limit = command.Limit,
+                    Limit = 100,
 
                 };
                 await _context.Category.AddAsync(addCategory);
